@@ -3,8 +3,11 @@ from random import randrange
 import psycopg # type: ignore
 import time
 
-from fastapi import FastAPI, Response, HTTPException, status # type: ignore
-from pydantic import BaseModel # type: ignore
+from fastapi import FastAPI, Response, HTTPException, status, Depends # type: ignore
+from pydantic import BaseModel
+from sqlmodel import Session,SQLModel
+from . database import get_db, engine
+from . import models
 
 class Post(BaseModel):
     title: str
@@ -14,8 +17,7 @@ class Post(BaseModel):
 
 app = FastAPI()
 
-my_posts = [{"title": "title of post 1", "content": "content of post 1", "id": 1},
-            {"title": "favorite foods", "content": "I like pizza", "id": 2}]
+SQLModel.metadata.create_all(engine)
 
 while True:
     try:
@@ -29,15 +31,9 @@ while True:
         time.sleep(2)
 
 
-def find_post(id):
-    for p in my_posts:
-        if p["id"] == id:
-            return p
-
-def find_index_post(id):
-    for i, p in enumerate(my_posts):
-        if p['id'] == id:
-            return i
+@app.get("/sqlalchemy")
+def test_posts(db: Session = Depends(get_db)):
+    return {"status": "success"}
 
 @app.get("/")
 async def root():
