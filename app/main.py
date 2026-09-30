@@ -1,19 +1,11 @@
-from typing import Optional
 from random import randrange
 import psycopg # type: ignore
 import time
-
 from fastapi import FastAPI, Response, HTTPException, status, Depends # type: ignore
-from pydantic import BaseModel
 from sqlmodel import Session,SQLModel, select
 from . database import get_db, engine
 from . import models
-
-class Post(BaseModel):
-    title: str
-    content: str
-    published: bool = True
-    rating: Optional[int] = None
+from . import schemas
 
 app = FastAPI()
 
@@ -30,29 +22,21 @@ while True:
         print("Error:", e)
         time.sleep(2)
 
-
-@app.get("/sqlalchemy")
-def test_posts(db: Session = Depends(get_db)):
-
-    posts = db.exec(select(models.Post)).all()
-
-    return {"data": posts}
-
 @app.get("/")
 async def root():
     return {"message": "Welcome to my api!"}
 
-@app.get("/posts")
+@app.get("/posts", response_model=list[schemas.Post])
 async def get_posts(db: Session = Depends(get_db)):
     # cur.execute("SELECT * FROM posts")
     # my_posts = cur.fetchall()
     # print(posts)
     posts = db.exec(select(models.Post)).all()
-    return {"data": posts}
+    return posts
     
 
-@app.post("/posts", status_code=status.HTTP_201_CREATED) # type: ignore
-async def create_posts(post: Post, db: Session = Depends(get_db)):
+@app.post("/posts", status_code=status.HTTP_201_CREATED, response_model=schemas.Post) # type: ignore
+async def create_posts(post: schemas.PostCreate, db: Session = Depends(get_db)):
     #cur.execute("INSERT INTO posts (title, content, published) VALUES (%s, %s, %s) RETURNING *", (post.title, post.content, post.published))
     # new_post = cur.fetchone()
     # conn.commit() 
@@ -60,15 +44,15 @@ async def create_posts(post: Post, db: Session = Depends(get_db)):
     db.add(new_post)
     db.commit()
     db.refresh(new_post)
-    return {"Data": new_post}
+    return new_post
 
-@app.get("/posts/latest")
+@app.get("/posts/latest", response_model=schemas.Post)
 async def get_latest_post():
     cur.execute("SELECT * FROM posts ORDER BY created_at DESC LIMIT 1")
     post = cur.fetchone()
-    return {"latest_post": post}
+    return post
 
-@app.get("/posts/{id}")
+@app.get("/posts/{id}", response_model=schemas.Post)
 async def get_post(id: int, db: Session = Depends(get_db)):
     # cur.execute("SELECT * FROM posts WHERE id = %s", (str(id),))
     # post = cur.fetchone()
@@ -76,7 +60,7 @@ async def get_post(id: int, db: Session = Depends(get_db)):
     
     if not post:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Post with id: {id} was not found")
-    return {"post_detail": post}
+    return post
 
 @app.delete("/posts/{id}", status_code=status.HTTP_204_NO_CONTENT) # type: ignore
 async def delete_post(id: int, db: Session = Depends(get_db)):
@@ -93,8 +77,8 @@ async def delete_post(id: int, db: Session = Depends(get_db)):
     db.commit()
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
-@app.put("/posts/{id}")
-async def update_post(id: int, post: Post, db: Session = Depends(get_db)):
+@app.put("/posts/{id}", response_model=schemas.Post)
+async def update_post(id: int, post: schemas.PostCreate, db: Session = Depends(get_db)):
     # cur.execute("SELECT * FROM posts WHERE id = %s", (str(id),))
     # existing_post = cur.fetchone()
     # if not existing_post:
@@ -119,4 +103,13 @@ async def update_post(id: int, post: Post, db: Session = Depends(get_db)):
     db.commit()
     db.refresh(post_to_update)
 
-    return {"updated_post": post_to_update}
+    return post_to_update
+
+@app.post("/users", status_code=status.HTTP_201_CREATED, response_model=schemas.UserOut) # type: ignore
+def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
+    user_data = user.model_dump()
+    new_user = models.User(**user_data)
+    db.add(new_user)
+    db.commit()
+    db.refresh(new_user)
+    return new_user
