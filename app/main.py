@@ -5,13 +5,14 @@ from fastapi import FastAPI, Response, HTTPException, status, Depends # type: ig
 from sqlmodel import Session,SQLModel, select
 from . database import get_db, engine
 from . import models, schemas, utils
-from .routers import post, user
+from .routers import post, user, auth
 
 SQLModel.metadata.create_all(engine)
 
 app = FastAPI()
 app.include_router(post.router)
 app.include_router(user.router)
+app.include_router(auth.router)
 
 while True:
     try:
