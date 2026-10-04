@@ -1,5 +1,5 @@
 from ..database import get_db
-from .. import models, schemas, utils
+from .. import models, schemas, utils, oauth2
 from fastapi import APIRouter, Depends, HTTPException, status, Response
 from sqlmodel import Session, select
 
@@ -9,7 +9,7 @@ router = APIRouter(
 )
 
 @router.get("/", response_model=list[schemas.Post])
-async def get_posts(db: Session = Depends(get_db)):
+async def get_posts(db: Session = Depends(get_db), current_user: schemas.TokenData = Depends(oauth2.get_current_user)):
     # cur.execute("SELECT * FROM posts")
     # my_posts = cur.fetchall()
     # print(posts)
@@ -18,7 +18,7 @@ async def get_posts(db: Session = Depends(get_db)):
     
 
 @router.post("/", status_code=status.HTTP_201_CREATED, response_model=schemas.Post) # type: ignore
-async def create_posts(post: schemas.PostCreate, db: Session = Depends(get_db)):
+async def create_posts(post: schemas.PostCreate, db: Session = Depends(get_db), current_user: schemas.TokenData = Depends(oauth2.get_current_user)):
     #cur.execute("INSERT INTO posts (title, content, published) VALUES (%s, %s, %s) RETURNING *", (post.title, post.content, post.published))
     # new_post = cur.fetchone()
     # conn.commit() 
@@ -29,7 +29,7 @@ async def create_posts(post: schemas.PostCreate, db: Session = Depends(get_db)):
     return new_post
 
 @router.get("/latest", response_model=schemas.Post)
-async def get_latest_post(db: Session = Depends(get_db)):
+async def get_latest_post(db: Session = Depends(get_db), current_user: schemas.TokenData = Depends(oauth2.get_current_user)):
     # cur.execute("SELECT * FROM posts ORDER BY created_at DESC LIMIT 1")
     # post = cur.fetchone()
     # return post
@@ -44,7 +44,7 @@ async def get_latest_post(db: Session = Depends(get_db)):
     return post
 
 @router.get("/{id}", response_model=schemas.Post)
-async def get_post(id: int, db: Session = Depends(get_db)):
+async def get_post(id: int, db: Session = Depends(get_db), current_user: schemas.TokenData = Depends(oauth2.get_current_user)):
     # cur.execute("SELECT * FROM posts WHERE id = %s", (str(id),))
     # post = cur.fetchone()
     post = db.get(models.Post, id)
@@ -54,7 +54,7 @@ async def get_post(id: int, db: Session = Depends(get_db)):
     return post
 
 @router.delete("/{id}", status_code=status.HTTP_204_NO_CONTENT) # type: ignore
-async def delete_post(id: int, db: Session = Depends(get_db)):
+async def delete_post(id: int, db: Session = Depends(get_db), current_user: schemas.TokenData = Depends(oauth2.get_current_user)):
     # cur.execute("SELECT * FROM posts WHERE id = %s", (str(id),))
     # existing_post = cur.fetchone()
     # cur.execute("DELETE FROM posts WHERE id = %s", (str(id),))
@@ -69,7 +69,7 @@ async def delete_post(id: int, db: Session = Depends(get_db)):
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 @router.put("/{id}", response_model=schemas.Post)
-async def update_post(id: int, post: schemas.PostCreate, db: Session = Depends(get_db)):
+async def update_post(id: int, post: schemas.PostCreate, db: Session = Depends(get_db), current_user: schemas.TokenData = Depends(oauth2.get_current_user)):
     # cur.execute("SELECT * FROM posts WHERE id = %s", (str(id),))
     # existing_post = cur.fetchone()
     # if not existing_post:
