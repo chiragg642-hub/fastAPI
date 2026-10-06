@@ -22,7 +22,7 @@ async def create_posts(post: schemas.PostCreate, db: Session = Depends(get_db), 
     #cur.execute("INSERT INTO posts (title, content, published) VALUES (%s, %s, %s) RETURNING *", (post.title, post.content, post.published))
     # new_post = cur.fetchone()
     # conn.commit() 
-    new_post = models.Post(**post.model_dump())  
+    new_post = models.Post(owner_id = current_user.id, **post.model_dump())  
     db.add(new_post)
     db.commit()
     db.refresh(new_post)
@@ -64,6 +64,9 @@ async def delete_post(id: int, db: Session = Depends(get_db), current_user: sche
     if not post:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Post with id: {id} does not exist")
 
+    if post.owner_id != current_user.id:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized to delete this post")
+    
     db.delete(post)
     db.commit()
     return Response(status_code=status.HTTP_204_NO_CONTENT)
@@ -86,6 +89,12 @@ async def update_post(id: int, post: schemas.PostCreate, db: Session = Depends(g
             detail=f"Post with id: {id} was not found"
         )
 
+    if post_to_update.owner_id != current_user.id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Not authorized to update this post"
+        )
+    
     post_data = post.model_dump(exclude_unset=True)
 
     for key, value in post_data.items():

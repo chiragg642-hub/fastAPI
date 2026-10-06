@@ -1,5 +1,5 @@
 from datetime import datetime, timezone
-from sqlmodel import SQLModel, Field
+from sqlmodel import SQLModel, Field, Relationship
 from sqlalchemy import Column, Boolean, DateTime, text
 
 
@@ -21,6 +21,7 @@ class Post(SQLModel, table=True):
             server_default=text("CURRENT_TIMESTAMP")
         )
     )
+    owner_id: int = Field(foreign_key="users.id", nullable=False, ondelete="CASCADE")  # Foreign key to the users table
 
 class User(SQLModel, table=True):
     __tablename__ = "users"
