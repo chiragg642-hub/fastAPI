@@ -10,10 +10,16 @@ class PostBase(BaseModel):
 class PostCreate(PostBase):
     pass
 
+class PostOwner(BaseModel):
+    email: EmailStr
+
+    model_config = ConfigDict(from_attributes=True)
+
 class Post(PostBase):
     id: int
     created_at: datetime
     owner_id: int
+    owner: PostOwner
 
     model_config = ConfigDict(from_attributes=True)
 

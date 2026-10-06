@@ -22,6 +22,7 @@ class Post(SQLModel, table=True):
         )
     )
     owner_id: int = Field(foreign_key="users.id", nullable=False, ondelete="CASCADE")  # Foreign key to the users table
+    owner: "User" = Relationship()  # Relationship to the User model
 
 class User(SQLModel, table=True):
     __tablename__ = "users"

@@ -1,5 +1,6 @@
+from typing import Optional
 from ..database import get_db
-from .. import models, schemas, utils, oauth2
+from .. import models, schemas, oauth2
 from fastapi import APIRouter, Depends, HTTPException, status, Response
 from sqlmodel import Session, select
 
@@ -9,11 +10,11 @@ router = APIRouter(
 )
 
 @router.get("/", response_model=list[schemas.Post])
-async def get_posts(db: Session = Depends(get_db), current_user: schemas.TokenData = Depends(oauth2.get_current_user)):
+async def get_posts(db: Session = Depends(get_db), current_user: schemas.TokenData = Depends(oauth2.get_current_user), limit: int = 10, skip: int = 0, search: Optional[str] = ""):
     # cur.execute("SELECT * FROM posts")
     # my_posts = cur.fetchall()
     # print(posts)
-    posts = db.exec(select(models.Post)).all()
+    posts = db.exec((select(models.Post)).filter(models.Post.title.contains(search)).limit(limit).offset(skip)).all()
     return posts
     
 

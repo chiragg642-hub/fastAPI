@@ -1,4 +1,4 @@
-from fastapi import APIRouter, status, Depends, HTTPException, Response
+from fastapi import APIRouter, status, Depends, HTTPException
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlmodel import Session, select
 from .. import models, schemas, utils, database, oauth2
