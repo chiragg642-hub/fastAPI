@@ -4,12 +4,13 @@ from fastapi.security import OAuth2PasswordBearer
 import jwt
 from sqlmodel import Session
 from . import schemas, database
+from .config import settings
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")  # Placeholder for OAuth2PasswordBearer or similar dependency
 
-SECRET_KEY = "4fb46c2dc1bdb617532a1dc1c0a0ffd0269ceab3854885f14c50e432ce06f799"
-ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 30
+SECRET_KEY = settings.secret_key
+ALGORITHM = settings.algorithm
+ACCESS_TOKEN_EXPIRE_MINUTES = settings.access_token_expire_minutes
 
 def create_access_token(data: dict):
     to_encode = data.copy()

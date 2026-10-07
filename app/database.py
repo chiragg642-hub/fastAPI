@@ -1,8 +1,9 @@
 from time import time
 import psycopg
 from sqlmodel import create_engine, Session
+from .config import settings
 
-DATABASE_URL = "postgresql+psycopg://postgres:123456@localhost:5432/fastapi"
+DATABASE_URL = "postgresql+psycopg://{settings.database_username}:{settings.database_password}@{settings.database_host}:{settings.database_port}/{settings.database_name}".format(settings=settings)
 
 engine = create_engine(DATABASE_URL)
 
