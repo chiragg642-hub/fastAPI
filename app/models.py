@@ -37,3 +37,8 @@ class User(SQLModel, table=True):
             server_default=text("CURRENT_TIMESTAMP")
         )
     )
+
+class Vote(SQLModel, table=True):
+    __tablename__ = "votes"
+    user_id: int = Field(foreign_key="users.id", ondelete="CASCADE", primary_key=True)
+    post_id: int = Field(foreign_key="posts.id", ondelete="CASCADE", primary_key=True)

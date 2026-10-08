@@ -43,3 +43,7 @@ class Token(BaseModel):
 
 class TokenData(BaseModel):
     id: int | None = None
+
+class Vote(BaseModel):
+    post_id: int
+    dir: int
