@@ -1,5 +1,5 @@
 from datetime import datetime
-from pydantic import BaseModel, ConfigDict, EmailStr
+from pydantic import BaseModel, ConfigDict, EmailStr, Field
 
 
 class PostBase(BaseModel):
@@ -22,6 +22,13 @@ class Post(PostBase):
     owner: PostOwner
 
     model_config = ConfigDict(from_attributes=True)
+
+class PostOut(BaseModel):
+    Post: Post 
+    votes: int
+
+    model_config = ConfigDict(from_attributes=True)
+
 
 class UserCreate(BaseModel):
     email: EmailStr

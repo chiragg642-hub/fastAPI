@@ -2,20 +2,32 @@ from typing import Optional
 from ..database import get_db
 from .. import models, schemas, oauth2
 from fastapi import APIRouter, Depends, HTTPException, status, Response
-from sqlmodel import Session, select
+from sqlmodel import Session, func, select
 
 router = APIRouter(
     prefix="/posts",
     tags=["Posts"]
 )
 
-@router.get("/", response_model=list[schemas.Post])
+@router.get("/", response_model=list[schemas.PostOut])
 async def get_posts(db: Session = Depends(get_db), current_user: schemas.TokenData = Depends(oauth2.get_current_user), limit: int = 10, skip: int = 0, search: Optional[str] = ""):
     # cur.execute("SELECT * FROM posts")
     # my_posts = cur.fetchall()
     # print(posts)
-    posts = db.exec((select(models.Post)).filter(models.Post.title.contains(search)).limit(limit).offset(skip)).all()
-    return posts
+    #posts = db.exec((select(models.Post)).filter(models.Post.title.contains(search)).limit(limit).offset(skip)).all()
+    result = db.exec(
+        select(
+            models.Post,
+            func.count(models.Vote.post_id).label("votes"),
+        )
+        .join(models.Vote, models.Vote.post_id == models.Post.id, isouter=True)
+        .group_by(models.Post.id)
+        .filter(models.Post.title.contains(search))
+        .limit(limit)
+        .offset(skip)
+    ).mappings().all()
+
+    return result
     
 
 @router.post("/", status_code=status.HTTP_201_CREATED, response_model=schemas.Post) # type: ignore
