@@ -56,12 +56,22 @@ async def get_latest_post(db: Session = Depends(get_db), current_user: schemas.T
 
     return post
 
-@router.get("/{id}", response_model=schemas.Post)
+@router.get("/{id}", response_model=schemas.PostOut)
 async def get_post(id: int, db: Session = Depends(get_db), current_user: schemas.TokenData = Depends(oauth2.get_current_user)):
     # cur.execute("SELECT * FROM posts WHERE id = %s", (str(id),))
     # post = cur.fetchone()
-    post = db.get(models.Post, id)
+    # post = db.get(models.Post, id)
     
+    post = db.exec(
+            select(
+                models.Post,
+                func.count(models.Vote.post_id).label("votes"),
+            )
+            .join(models.Vote, models.Vote.post_id == models.Post.id, isouter=True)
+            .group_by(models.Post.id)
+            .where(models.Post.id == id)
+        ).mappings().first()
+        
     if not post:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Post with id: {id} was not found")
     return post
