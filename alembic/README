@@ -1,1 +1,5 @@
-Generic single-database configuration.
+Apply the schema revisions with `alembic upgrade head`.
+
+The revision history recreates the schema in the same order the API models
+evolved: posts, users, post ownership, then votes. It is intended for a fresh,
+empty database.
