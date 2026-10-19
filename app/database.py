@@ -1,5 +1,3 @@
-from time import time
-import psycopg
 from sqlmodel import create_engine, Session
 from .config import settings
 
@@ -12,15 +10,15 @@ def get_db():
     with Session(engine) as session:
         yield session
 
-while True:
-    try:
+# while True:
+#     try:
         
-        conn = psycopg.connect(host=settings.database_host, dbname='fastapi', user=settings.database_username, password=settings.database_password, port=settings.database_port, row_factory=psycopg.rows.dict_row)
+#         conn = psycopg.connect(host=settings.database_host, dbname='fastapi', user=settings.database_username, password=settings.database_password, port=settings.database_port, row_factory=psycopg.rows.dict_row)
         
-        cur = conn.cursor()
-        print("Database connection successful")
-        break
-    except Exception as e:
-        print("Database connection failed")
-        print("Error:", e)
-        time.sleep(2)
+#         cur = conn.cursor()
+#         print("Database connection successful")
+#         break
+#     except Exception as e:
+#         print("Database connection failed")
+#         print("Error:", e)
+#         time.sleep(2)
